@@ -3,7 +3,7 @@ StudentID: 313551078 \
 Name: 吳年茵
 
 ## Introduction
-In this lab, we have to train a __instance segmentation__ model to solve a __instance segmentation task__ to segment the mask of four types of cells with 4+1 classes (including background). 
+In this lab, we have to train an __instance segmentation__ model to solve an __instance segmentation task__ to segment the mask of four types of cells with 4+1 classes (including background). 
 
 We use a dataset of 209 colored medical images for training and validation and 101 for testing.
 I adopted the __Mask R-CNN__ model in Pytorch as my based model, modified the number of output classes to match our task, and used ResNet's pre-trained weight. 
