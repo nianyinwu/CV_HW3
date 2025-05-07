@@ -23,6 +23,14 @@ cd CV_HW3
 ```shell
 conda env create --file hw3.yml --force
 conda activate hw3
+pip install scikit-image
+pip install imagecodecs
+```
+
+3. Dataset
+```shell
+Create a folder named datas and put decompress data to this folder
+Rename the test-release folder to test
 ```
 
 ## Split the dataset
@@ -36,7 +44,7 @@ python3 split_data.py
 (need to modify data path in split_data.py)
 ```shell
 cd codes
-python3 generate_gt_json.py 
+python generate_gt_json.py 
 ```
 
 ## Training
@@ -52,4 +60,4 @@ python3 inference.py -d <data path> -w <the path of model checkpoints> -s <save 
 ```
 
 ## Performance snapshot
-![image](https://github.com/nianyinwu/CV_HW2/blob/main/result/snapshot.png)
+![image](https://github.com/nianyinwu/CV_HW3/blob/main/result/snapshot.png)
