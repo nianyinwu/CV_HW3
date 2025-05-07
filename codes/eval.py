@@ -1,4 +1,4 @@
-"""Evaluate a Instance Segmentation model """
+""" Evaluate a Instance Segmentation model """
 
 import torch
 from tqdm import tqdm
@@ -12,8 +12,7 @@ def evaluation(
     device: torch.device,
     model: torch.nn.Module,
     valid_loader: torch.utils.data.DataLoader,
-    gt_json: str,
-    threshold: float
+    gt_json: str
 ) -> tuple[torch.Tensor, float]:
     """
     Evaluate the model on the validation dataset.
@@ -23,14 +22,13 @@ def evaluation(
         model : Trained model to evaluate.
         valid_loader : DataLoader for the validation set.
         gt_json : The path of ground truth annotation file.
-        threshold : The score threshold to filter prediction.
 
     Returns:
         mean_ap : Mean Average Precision.
-        acc : Accuracy.
+        ap50 : Average Precision  50.
     """
 
-    # Evaluation mAP, Accuracy
+    # Evaluation mAP, AP50
     model.eval()
     results = []
 
@@ -54,10 +52,11 @@ def evaluation(
 
                     # Binary mask → RLE encoding
                     binary_mask = (mask[0] > 0.5).cpu().numpy().astype("uint8")
-                    # binary_mask = (mask.squeeze(0) > 0.5).cpu().numpy().astype("uint8")
                     arr = np.asfortranarray(binary_mask)
                     rle = mask_utils.encode(arr)
-                    rle["counts"] = rle["counts"].decode("utf-8")  # for JSON export
+
+                    # for JSON export
+                    rle["counts"] = rle["counts"].decode("utf-8")
 
                     results.append({
                         "image_id": image_id,
@@ -67,10 +66,6 @@ def evaluation(
                         "score": float(score)
                     })
 
-    if not results:
-        print("No valid predictions above threshold.")
-        return 0.0
-
     coco_gt = COCO(gt_json)
     coco_pred = coco_gt.loadRes(results)
     coco_eval = COCOeval(coco_gt, coco_pred, iouType="segm")
@@ -78,7 +73,7 @@ def evaluation(
     coco_eval.accumulate()
     coco_eval.summarize()
 
-    mean_ap = coco_eval.stats[0]  # AP@[IoU=0.50:0.95]
+    mean_ap = coco_eval.stats[0]
     ap50  = coco_eval.stats[1]
 
     return mean_ap, ap50

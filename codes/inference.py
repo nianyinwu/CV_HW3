@@ -1,4 +1,4 @@
-""" Inference script for digit recognition """
+""" Inference script for Instance Segmentation """
 
 import json
 import argparse
@@ -68,13 +68,7 @@ def test(
 ) -> List[Tuple[str, str]]:
     """
     Perform inference on the test set.
-
-    Returns:
-        List of tuples (image_name, predicted_class)
     """
-
-    test_model.eval()
-    test_model.to(args.device)
 
     results = []
 
@@ -95,10 +89,11 @@ def test(
 
                     # Binary mask → RLE encoding
                     binary_mask = (mask[0] > 0.5).cpu().numpy().astype("uint8")
-                    # binary_mask = (mask.squeeze(0) > 0.5).cpu().numpy().astype("uint8")
                     arr = np.asfortranarray(binary_mask)
                     rle = mask_utils.encode(arr)
-                    rle["counts"] = rle["counts"].decode("utf-8")  # for JSON export
+
+                    # for JSON export
+                    rle["counts"] = rle["counts"].decode("utf-8")
 
                     results.append({
                         "image_id": image_id,
@@ -131,8 +126,9 @@ if __name__ == "__main__":
     test_loader = dataloader(opt, 'test')
 
     # Load model
-    model = get_model(num_classes=5)
+    model = get_model(num_classes=5).to(device)
     model.load_state_dict(torch.load(opt.weights))
+    model.eval()
 
     # Run inference
     pred_json = test(opt, model, test_loader)

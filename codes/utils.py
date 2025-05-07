@@ -1,4 +1,4 @@
-"""Utility functions for training, evaluation and visualization."""
+""" Utility functions for training, evaluation and visualization. """
 
 from torch import nn
 

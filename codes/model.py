@@ -1,13 +1,16 @@
 """ The model of Instance Segmentation  """
 
+import warnings
+
 import torch
 import torch.nn as nn
-from torchvision.models.detection import MaskRCNN
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
-from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
-from torchvision.models.detection import maskrcnn_resnet50_fpn_v2
 
+from torchvision.models.detection import MaskRCNN
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+# from torchvision.models.detection.backbone_utils import BackboneWithFPN
+
+# ignore warnings
+warnings.filterwarnings('ignore')
 
 class CBAM(nn.Module):
     """
@@ -51,26 +54,25 @@ class CBAM(nn.Module):
 
         return out
 
+
 def get_model(num_classes):
     """
     Init the instance segmentation model
     """
 
-    backbone = resnet_fpn_backbone('resnet101', pretrained=True)
-
+    backbone = resnet_fpn_backbone('resnet50', pretrained=False)
     model = MaskRCNN(backbone, num_classes=num_classes)
 
+    # Mask R-CNN + CBAM
+    # model = maskrcnn_resnet50_fpn(
+    #     weights=None,
+    #     num_classes = num_classes,
+    #     weights_backbone="ResNet50_Weights.IMAGENET1K_V1"
+    # )
     # model.backbone.body.layer2.add_module("cbam", CBAM(512))
     # model.backbone.body.layer3.add_module("cbam", CBAM(1024))
     # model.backbone.body.layer4.add_module("cbam", CBAM(2048))
 
-    # model = maskrcnn_resnet50_fpn_v2(pretrained=True)
-    # in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
-    # in_channels = model.roi_heads.mask_predictor.conv5_mask.in_channels
-    # hidden_layer = 256
-    # model.roi_heads.mask_predictor = MaskRCNNPredictor(
-        # in_channels, hidden_layer, num_classes
-    # )
+    model.roi_heads.detections_per_img = 1000
 
     return model

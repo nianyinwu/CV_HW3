@@ -9,12 +9,10 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.backends import cudnn
 from torch.cuda.amp import GradScaler, autocast
-from torch.optim.lr_scheduler import LRScheduler, ReduceLROnPlateau
+from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from transformers.optimization import get_cosine_schedule_with_warmup
-
-
 
 from utils import tqdm_bar
 from eval import evaluation
@@ -77,7 +75,7 @@ def get_args():
         '--learning_rate',
         '-lr',
         type=float,
-        default=5e-3,
+        default=1e-4,
         help='learning rate'
     )
 
@@ -102,8 +100,9 @@ def train(
         train_device (torch.device): Device to train on (CPU or GPU).
         train_model (nn.Module): The model to train.
         data_loader (DataLoader): DataLoader for training data.
-        criterion (nn.Module): Loss function.
         optimizer (Optimizer): Optimizer for training.
+        grad_scaler (GradScaler):  Automatic mixed-precision (AMP) gradient scaler
+        scheduler: Learning rate scheduler
 
     Returns:
         Tuple[torch.Tensor, float]: The average training loss and accuracy.
@@ -150,6 +149,7 @@ if __name__ == "__main__":
 
     model = get_model(num_classes=5).to(device)
 
+
     # Setting dataloader for training and validation
     train_loader = dataloader(args=opt, mode='train')
     val_loader = dataloader(args=opt, mode='valid')
@@ -162,20 +162,8 @@ if __name__ == "__main__":
                     model.parameters(),
                     lr=opt.learning_rate,
                     betas=(0.9, 0.999),
-                    weight_decay=1e-4
+                    weight_decay=5e-4
                 )
-    # optim_func = optim.RAdam(
-    #             model.parameters(),
-    #             lr=opt.learning_rate,
-    #             betas=(0.9, 0.999),
-    #             weight_decay=1e-4
-    #             )
-    # optim_func = optim.SGD(
-    #                 params,
-    #                 lr=opt.learning_rate,
-    #                 momentum=0.9,
-    #                 weight_decay=5e-4
-    #             )
 
     total_steps = len(train_loader) * opt.epochs
     warmup_steps = int(total_steps * 0.25)
@@ -185,22 +173,6 @@ if __name__ == "__main__":
         num_training_steps=total_steps
     )
 
-    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optim_func, step_size=20, gamma=0.1)
-
-    # lr_scheduler = ReduceLROnPlateau(
-    #     optim_func,
-    #     mode='max',
-    #     factor=0.1,
-    #     patience=3,
-    #     threshold=1e-4,
-    #     threshold_mode='rel',
-    #     cooldown=1,
-    #     min_lr=1e-6,
-    # )
-
-
-    threshold = 0.5
-    best_acc = 0
     best_map = 0
     best_ap50 = 0
 
@@ -218,7 +190,7 @@ if __name__ == "__main__":
                         lr_scheduler
                     )
 
-        mAP, AP50 = evaluation(device, model, val_loader, val_gt_path, threshold)
+        mAP, AP50 = evaluation(device, model, val_loader, val_gt_path)
 
 
         current_lr = optim_func.param_groups[0]['lr']
@@ -239,7 +211,8 @@ if __name__ == "__main__":
             best_map = mAP
             torch.save(model.state_dict(), os.path.join(opt.save_path, 'val_mAP_best.pth'))
 
-        if epoch % 10 == 0:
+
+        if epoch % 5 == 0:
             torch.save(model.state_dict(), os.path.join(opt.save_path, f'epoch{epoch}.pth'))
 
 
@@ -247,7 +220,6 @@ if __name__ == "__main__":
         writer.add_scalar("Validation/mAP", mAP, epoch)
         writer.add_scalar("Validation/AP50", AP50, epoch)
 
-        # lr_scheduler.step(mAP)
 
     torch.save(model.state_dict(), os.path.join(opt.save_path, 'last.pth'))
 
