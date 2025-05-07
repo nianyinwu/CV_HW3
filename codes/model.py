@@ -60,7 +60,7 @@ def get_model(num_classes):
     Init the instance segmentation model
     """
 
-    backbone = resnet_fpn_backbone('resnet50', pretrained=False)
+    backbone = resnet_fpn_backbone('resnet50', pretrained=True)
     model = MaskRCNN(backbone, num_classes=num_classes)
 
     # Mask R-CNN + CBAM
