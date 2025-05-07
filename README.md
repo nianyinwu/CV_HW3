@@ -5,7 +5,7 @@ Name: 吳年茵
 ## Introduction
 In this lab, we have to train an __instance segmentation__ model to solve an __instance segmentation task__ to segment the mask of four types of cells with 4+1 classes (including background). 
 
-We use a dataset of 209 colored medical images for training and validation and 101 for testing.
+We use a dataset of 209 colored medical images for training and validation and 101 for testing. For this lab, I split the data to the ratio of 8:2 for training and validation. 
 I adopted the __Mask R-CNN__ model in Pytorch as my based model, modified the number of output classes to match our task, and used ResNet's pre-trained weight. 
 
 To improve the model's performance for this task, I also modified some backbone and added some tricks, such as a data augmentation module, to have a better metrics in AP50.
@@ -25,13 +25,20 @@ conda env create --file hw3.yml --force
 conda activate hw3
 ```
 
+## Split the dataset
+```shell
+cd codes
+python3 split_data.py 
+```
+
+
 ## Training
 ```shell
 cd codes
 python3 train.py -e <epochs> -b <batch size> -lr <learning rate> -d <data path> -s <save path> 
 ```
 ## Testing ( Inference )
-The two predicted results (pred.csv and pred.json) will be saved in the argument of save path .
+The predicted results (test-results.json) will be saved in the argument of save path .
 ```shell
 cd codes
 python3 inference.py -d <data path> -w <the path of model checkpoints> -s <save path>
