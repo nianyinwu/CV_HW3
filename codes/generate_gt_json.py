@@ -1,4 +1,5 @@
 """ Generate ground truth annotation json file """
+
 import os
 import json
 import numpy as np
