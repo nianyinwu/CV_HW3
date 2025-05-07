@@ -26,11 +26,18 @@ conda activate hw3
 ```
 
 ## Split the dataset
+(need to modify data path in split_data.py)
 ```shell
 cd codes
 python3 split_data.py 
 ```
 
+## Generate Validation Ground Truth json file
+(need to modify data path in split_data.py)
+```shell
+cd codes
+python3 generate_gt_json.py 
+```
 
 ## Training
 ```shell
