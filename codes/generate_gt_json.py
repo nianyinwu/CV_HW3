@@ -82,7 +82,7 @@ def generate_gt_json(root_dir, save_path, category_ids):
 
     with open(save_path, "w", encoding="utf-8") as f:
         json.dump(coco, f)
-    print(f"Saved COCO GT to {save_path} (images={len(coco['images'])}, anns={len(coco['annotations'])})")
+    print(f"Saved ground truch json file to {save_path}")
 
 if __name__ == "__main__":
     generate_gt_json(
